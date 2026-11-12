@@ -1,30 +1,44 @@
-# Career Inventory Playbook
+# Resume Workflow: Career Inventory
 
-A multi-agent workflow for turning years of work history into a complete, evidence-backed
-master resume. It collects everything, audits it, interviews you to fill the gaps, and only
-then exports a copy with confidential details removed.
+A multi-agent workflow that turns years of work (code, design docs, code reviews,
+tickets, perf reviews) into one **master record** of everything I've done. It's detailed
+enough to jog my memory or build any resume, and it exports a copy with internal details
+removed.
 
-Built to run on a work machine with approved tools. Only `export/` should ever leave it.
+Runs on the work machine with approved tools. Only `career-inventory/export/` leaves it.
 
 ## Quick start
 1. Copy `BRIEF.template.md` → `career-inventory/BRIEF.md` and fill it in (about 1–2 hrs).
 2. Copy `RULES.md` → `career-inventory/RULES.md`.
-3. Paste `prompts/00-orchestrator.md` into your agent. It sends out the subagents in
-   `prompts/subagents/` and tracks progress in `career-inventory/STATE.md`.
-4. Interview phase: `prompts/interviewer.md` (one project per session), then
-   `prompts/final-completeness-interview.md`.
+3. Paste `prompts/00-orchestrator.md` into your agent. It runs only P0, then stops and
+   shows you a slicing plan.
+4. Keep approving at each ⏸. If a session runs out, start a new one and paste the
+   orchestrator again; it resumes from `career-inventory/STATE.md`.
 
-The whole playbook in one file: [`PLAYBOOK.md`](PLAYBOOK.md).
+## Why many agents instead of one
+One agent going through 4 years of material ends up skimming. Here the orchestrator
+never reads raw material; each subagent gets a small slice (≤1 quarter × 1 source, about
+100 items), writes to a file and reports back briefly. P0 records how many items exist,
+and every later phase has to account for all of them.
 
 ## Pipeline
-| Phase | Agent | Output |
+| Phase | Agent (`prompts/subagents/`) | Output |
 |---|---|---|
-| P0 | Source mapper | `00-sources.md` |
-| P1 | Harvesters (quarter × source) | `raw/<Q>/<source>.md` |
-| P2 | Digesters (per quarter) | `quarters/<Q>.md` |
-| P3 | Auditors (per quarter, loops) | `audits/<Q>.md` |
-| P4 | Leads sweep | `LEADS.md` cleared |
-| P5 | Cross-checker vs perf/promo docs | `crosscheck.md` |
-| P6 | Synthesizers (per project) | `projects/<name>.md` |
-| P7–8 | Interviewer (with you) | answers tagged `[FROM-ME]`, `master-summary.md` |
-| P9 | Sanitizer, then redaction reviewer | `export/`, `REDACTIONS.md` |
+| P0 | Source mapper | `00-sources.md`, counts per quarter, slicing plan ⏸ |
+| P1 | `harvester` (one per quarter × source) | `raw/<Q>/<source>.md` index |
+| P2 | `code-reader` (per repo/CR cluster), `doc-reader` (≤5 docs each) | `reads/code/*`, `reads/docs/*` |
+| P3 | `digester` (per quarter) | `quarters/<Q>.md` contributions |
+| P4 | `auditor` (per quarter, loops) | `audits/<Q>.md` |
+| P5 | leads sweep + `cross-checker` | `crosscheck.md` ⏸ |
+| P6 | `synthesizer` (per project) | `projects/<name>.md` ⏸ |
+| P7 | `investigator` (per project) | implied work, under-claiming, `questions/<name>.md` |
+| P8 | `prompts/interviewer.md` (with you) | answers tagged `[FROM-ME]` |
+| P9 | `prompts/final-completeness-interview.md` | `MASTER.md` ⏸ |
+| P10 | `sanitizer-and-redaction-reviewer` | `export/MASTER.export.md`, `REDACTIONS.md` ⏸ |
+
+## Output format
+See `templates/MASTER.template.md`: timeline, skills index, then **Project →
+Contributions**. Each contribution has dates, role, how it was built, tech, scale,
+impact, supporting work, collaborators by role, keywords and open questions. After that
+come other work (oncall, reviews, interviews, mentoring, tools), recognition, and open
+items.
